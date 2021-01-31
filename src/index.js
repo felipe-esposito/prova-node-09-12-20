@@ -1,66 +1,62 @@
 var http = require("http");
-var users = [
-  {
-    id: 1,
-    name: "João",
-    username: "joao",
-    email: "joao@gmail.com"
+
+(async () => {
+  const database = require('./db');
+
+  try {
+      const resultado = await database.sync();
+      //console.log(resultado);
+  } catch (error) {
+      console.log(error);
   }
-];
+})();
+
 http
   .createServer(function (req, res) {
     var url = req.url;
     var method = req.method;
     res.setHeader("Content-Type", "application/json");
     if (url.startsWith("/users")) {
-      if (method === "GET") {
+
+      if (method === "GET") { // READ
+        const users = User.findAll();
+        console.log(users);
         res.write(JSON.stringify(users));
       }
-      if (method === "POST") {
-        let body = "";
-        req.on("data", chunk => {
-          body += chunk.toString(); // convert Buffer to string
-        });
-        req.on("end", () => {
-          users.push(JSON.parse(body));
-          res.end("ok");
-          //res.write(JSON.stringify(users));
-        });
-      }
-      if (method === "PUT") {
-        let body = "";
-        req.on("data", chunk => {
-          body += chunk.toString(); // convert Buffer to string
-        });
-        req.on("end", () => {
-          var id = url.split("/")[2];
-          var user = users.find(el => {
-            return el.id === parseInt(id);
-          });
-          body = JSON.parse(body);
-          user.name = body.name;
-          user.username = body.username;
-          user.email = body.email;
 
-          res.end("ok");
-          //res.write(JSON.stringify(users));
-        });
-      }
-      if (method === "DELETE") {
-        var id = url.split("/")[2];
-        var index = users.findIndex(el => {
-          return el.id === parseInt(id);
-        });
+      if (method === "POST") { // CREATE
 
-        users.splice(parseInt(index), 1);
-        if (index === -1) {
-          res.statusCode = 404;
-        }
+        const resultadoCreate = User.create({
+          id: 1,
+          name: "João",
+          username: "joao",
+          email: "joao@gmail.com"
+        })
+        console.log(resultadoCreate);
+
+      }
+
+      if (method === "PUT") { //UPDATE
+        
+        const user = User.findByPk(1);
+        //console.log(user);
+        user.name = "Carlos";
+
+        const resultadoSave = user.save();
+        console.log(resultadoSave);  
+        
+      }
+      
+      if (method === "DELETE") { // DELETE
+
+        const user = User.findByPk(1);
+        user.destroy();
+
       }
 
       res.end(); //end the response
     } else {
-      res.write("<h1>Prova Backend Helpper<h1>"); //write a response
+      res.write("Prova Backend Helpper"); //write a response
       res.end(); //end the response
     }
   })
